@@ -6,4 +6,8 @@ module com.example.WitW {
 
     opens com.example.WitW to javafx.fxml;
     exports com.example.WitW;
+
+    opens Wandering to javafx.graphics, javafx.fxml;
+    exports Wandering;
 }
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="Wandering.MenuController" spacing="10" alignment="center">
+    <Text text="Welcome to Wandering in the Woods!" />
+    <Button text="k-2" onAction="#handleK2" />
+    <Button text="3-5" onAction="#handle35" />
+    <Button text="6-8" onAction="#handle68" />
+</VBox>
