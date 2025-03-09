@@ -10,7 +10,7 @@
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="Wandering.MenuController" spacing="10" alignment="center">
     <Text text="Welcome to Wandering in the Woods!" />
-    <Button text="k-2" onAction="#handleK2" />
-    <Button text="3-5" onAction="#handle35" />
-    <Button text="6-8" onAction="#handle68" />
+    <Button text="K-2" onAction="#handleK2Button" />
+    <Button text="3-5" onAction="#handleLevel3to5Button" />
+    <Button text="6-8" onAction="#handleLevel6to8Button" />
 </VBox>
