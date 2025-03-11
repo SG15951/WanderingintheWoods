@@ -12,29 +12,23 @@ public class MenuController {
 
     @FXML
     private void handleK2Button() {
-        openGrid(5, 5);
+        GridSizeMenu gridSizeMenu = new GridSizeMenu(true);
+        Stage menuStage = new Stage();
+        gridSizeMenu.start(menuStage);
     }
 
     @FXML
     private void handleLevel3to5Button() {
-        openCustomGrid();
+        GridSizeMenu gridSizeMenu = new GridSizeMenu(false);
+        Stage menuStage = new Stage();
+        gridSizeMenu.start(menuStage);
     }
 
     @FXML
     private void handleLevel6to8Button() {
-        openCustomGrid();
-    }
-
-    private void openGrid(int rows, int cols) {
-        GameGrid gameGrid = new GameGrid(rows, cols);
-        Stage gridStage = new Stage();
-        gameGrid.start(gridStage);
-    }
-
-    private void openCustomGrid() {
-        GameGrid gameGrid = new GameGrid();
-        Stage gridStage = new Stage();
-        gameGrid.start(gridStage);
+        GridSizeMenu gridSizeMenu = new GridSizeMenu(false);
+        Stage menuStage = new Stage();
+        gridSizeMenu.start(menuStage);
     }
 
 }
