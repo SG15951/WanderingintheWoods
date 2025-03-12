@@ -2,6 +2,7 @@ package Wandering;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -13,22 +14,22 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
+import java.util.*;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GameGrid {
+public class CharacterMovement {
 
     private int rows;
     private int cols;
     private GridPane gridPane;
     private Cell[][] cells;
-    private Character[] characters;
+    private List<Character> characters = new ArrayList<>();
     private int moveCount = 0;
     private Timeline timeline;
 
     // Constructor to initialize grid size and character positions
-    public GameGrid(int rows, int cols, int[][] characterPositions) {
+    public CharacterMovement(int rows, int cols, int[][] characterPositions) {
         this.rows = rows;
         this.cols = cols;
         initializeCharacters(characterPositions);
@@ -84,44 +85,61 @@ public class GameGrid {
         }
 
         for (Character character : characters) {
-            cells[character.row][character.col].addCharacter();
+            cells[character.row][character.col].addCharacter(character.groupSize);
         }
     }
 
     // Check if any characters have encountered each other
     private void checkEncounters() {
-        Set<String> positions = new HashSet<>();
+        Map<String, List<Character>> positionMap = new HashMap<>();
         for (Character character : characters) {
             String pos = character.row + "," + character.col;
-            if (!positions.add(pos)) {  // Encounter detected
+            positionMap.putIfAbsent(pos, new ArrayList<>());
+            positionMap.get(pos).add(character);
+        }
+
+        boolean merged = false;
+        for (List<Character> group : positionMap.values()) {
+            if (group.size() > 1) {
+                merged = true;
+                Character mergedCharacter = group.get(0);
+
+                for (int i = 1; i < group.size(); i++) {
+                    mergedCharacter.groupSize += group.get(i).groupSize;
+                    characters.remove(group.get(i));
+                }
+            }
+        }
+
+        if (merged) {
+            if (characters.size() == 1) {
                 timeline.stop();
-                showEncounter(character.row, character.col);
-                return;
+                showEncounterMessage();
             }
         }
     }
 
     // Display visual and alert message upon encounter
-    private void showEncounter(int row, int col) {
-        cells[row][col].stackPane.setStyle("-fx-background-color: red;");
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Game Over");
-        alert.setHeaderText("Characters Encountered!");
-        alert.setContentText("Characters encountered after " + moveCount + " moves!");
-        alert.showAndWait();
+    private void showEncounterMessage() {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Over");
+            alert.setHeaderText("All Characters Joined!");
+            alert.setContentText("All characters joined after " + moveCount + " moves!");
+            alert.showAndWait();
+        });
     }
 
     // Initialize character positions and check for duplicates
     private void initializeCharacters(int[][] positions) {
-        characters = new Character[positions.length];
         Set<String> initialPositions = new HashSet<>();
-        for (int i = 0; i < positions.length; i++) {
-            String pos = positions[i][0] + "," + positions[i][1];
-            if (initialPositions.contains(pos)) {
+        for (int[] pos : positions) {
+            String key = pos[0] + "," + pos[1];
+            if (initialPositions.contains(key)) {
                 throw new IllegalArgumentException("Characters cannot start at the same position.");
             }
-            initialPositions.add(pos);
-            characters[i] = new Character(positions[i][0], positions[i][1]);
+            initialPositions.add(key);
+            characters.add(new Character(pos[0], pos[1]));
         }
     }
 
@@ -137,9 +155,9 @@ public class GameGrid {
         }
 
         // Add visual representation of a character
-        void addCharacter() {
+        void addCharacter(int groupSize) {
             Rectangle rect = new Rectangle(30, 30);
-            rect.setFill(Color.BLUE);
+            rect.setFill(groupSize > 1 ? Color.PURPLE : Color.BLUE); // Purple if merged
             stackPane.getChildren().add(rect);
         }
 
@@ -152,6 +170,7 @@ public class GameGrid {
     // Character class to handle character movements
     private class Character {
         int row, col;
+        int groupSize = 1;
 
         Character(int row, int col) {
             this.row = row;
