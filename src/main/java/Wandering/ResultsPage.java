@@ -1,120 +1,121 @@
 package Wandering;
 
-import javafx.scene.control.Alert;
+import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.util.List;
-import com.example.WitW.TextSpeech;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ResultsPage {
-    private String gradeLevel;  // Change to String (K-2, 3-5, 6-8)
-    private List<String> movements;
-    private List<String> stats;
-    private List<String> playerStats;
+    private int longestRun;
+    private int shortestRun;
+    private int averageRun;
+    private int totalMoves;
+    private int rows;
+    private int cols;
+    private boolean isGrade6to8;
+    private boolean isK2;
     private TextSpeech textSpeech;
+    private static Map<String, Integer> gridTimeTracker = new HashMap<>();
 
-    public ResultsPage(String gradeLevel, List<String> movements, List<String> stats, List<String> playerStats) {
-        this.gradeLevel = gradeLevel;
-        this.movements = movements;
-        this.stats = stats;
-        this.playerStats = playerStats;
+    public ResultsPage(int longestRun, int shortestRun, int averageRun, int totalMoves, int rows, int cols, boolean isGrade6to8, boolean isK2) {
+        this.longestRun = longestRun;
+        this.shortestRun = shortestRun;
+        this.averageRun = averageRun;
+        this.totalMoves = totalMoves;
+        this.rows = rows;
+        this.cols = cols;
+        this.isGrade6to8 = isGrade6to8;
+        this.isK2 = isK2;
+        this.textSpeech = new TextSpeech("Game Results");
 
-        // Initialize TextSpeech with the gradeLevel
-        this.textSpeech = new TextSpeech(gradeLevel);
+        // ✅ Only track grid completion times if grade level is 6-8
+        if (isGrade6to8) {
+            String gridSizeKey = rows + "x" + cols;
+            gridTimeTracker.put(gridSizeKey, totalMoves);
+        }
     }
 
     public void start(Stage stage) {
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
 
-        // Title
-        Label title = new Label("Game Results");
+        Label title = new Label("Game Over! Here are your results:");
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
-        // Movement History
-        VBox movementBox = new VBox(5);
-        for (String move : movements) {
-            movementBox.getChildren().add(new Label(move));
+        Label longestRunLabel = new Label("Longest Run Without Meeting: " + longestRun);
+        Label shortestRunLabel = new Label("Shortest Run Before Meeting: " + shortestRun);
+        Label averageRunLabel = new Label("Average Moves Before Meeting: " + averageRun);
+        Label totalMovesLabel = new Label("Total Moves Taken: " + totalMoves);
+        Label gridSizeLabel = new Label("Grid Size: " + rows + " x " + cols);
+
+        layout.getChildren().addAll(title, longestRunLabel, shortestRunLabel, averageRunLabel, totalMovesLabel, gridSizeLabel);
+
+        // ✅ Show tracking results only for grades 6-8
+        if (isGrade6to8) {
+            String shortestGridSize = getShortestTimeGrid();
+            String longestGridSize = getLongestTimeGrid();
+
+            Label experimentLabel = new Label("Experimental Data:");
+            experimentLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: darkred;");
+
+            Label shortestGridLabel = new Label("Grid with Fastest Completion: " + shortestGridSize);
+            Label longestGridLabel = new Label("Grid with Longest Completion: " + longestGridSize);
+
+            layout.getChildren().addAll(experimentLabel, shortestGridLabel, longestGridLabel);
         }
 
-        // Game Statistics
-        VBox statsBox = new VBox(5);
-        for (String stat : stats) {
-            statsBox.getChildren().add(new Label(stat));
-        }
-
-        // Player Stats (up to 4 players)
-        VBox playerStatsBox = new VBox(5);
-        for (int i = 0; i < Math.min(playerStats.size(), 4); i++) {
-            playerStatsBox.getChildren().add(new Label("Player " + (i + 1) + ": " + playerStats.get(i)));
-        }
-
-        layout.getChildren().addAll(title, new Label("Player Movements:"), movementBox, new Label("Statistics:"), statsBox, new Label("Player Stats:"), playerStatsBox);
-
-        // Grade-specific messages
-        switch (gradeLevel) {
-            case "K-2": // K-2
-                layout.getChildren().add(new Label("Great job! You explored the grid!"));
-                layout.getChildren().add(new Label("Total Moves: " + movements.size() + " moves"));
-                layout.getChildren().add(new Label("You made it with " + movements.size() + " moves!"));
-                textSpeech.speakText("Great job! You explored the grid with a total of " + movements.size() + " moves!");
-                break;
-            case "3-5": // 3-5
-                layout.getChildren().add(new Label("Game Results:"));
-                layout.getChildren().add(new Label("Total Moves: " + movements.size()));
-                layout.getChildren().add(new Label("Longest Run: " + stats.get(0)));  // Assume stats.get(0) is longest run
-                layout.getChildren().add(new Label("Shortest Run: " + stats.get(1)));  // Assume stats.get(1) is shortest run
-                layout.getChildren().add(new Label("Average Moves: " + stats.get(2))); // Assume stats.get(2) is average moves
-                textSpeech.speakText("Game results: Total Moves: " + movements.size() + ", Longest Run: " + stats.get(0) + ", Shortest Run: " + stats.get(1) + ", Average Moves: " + stats.get(2));
-                break;
-            case "6-8": // 6-8
-                layout.getChildren().add(new Label("Detailed Game Stats:"));
-                layout.getChildren().add(new Label("Total Moves: " + movements.size()));
-                layout.getChildren().add(new Label("Longest Run: " + stats.get(0)));
-                layout.getChildren().add(new Label("Shortest Run: " + stats.get(1)));
-                layout.getChildren().add(new Label("Average Moves: " + stats.get(2)));
-                layout.getChildren().add(new Label("Strategize your next game to optimize your moves!"));
-                textSpeech.speakText("Detailed game stats: Total Moves: " + movements.size() + ", Longest Run: " + stats.get(0) + ", Shortest Run: " + stats.get(1) + ", Average Moves: " + stats.get(2));
-                break;
-            default:
-                layout.getChildren().add(new Label("Game complete!"));
-                textSpeech.speakText("Game complete!");
-        }
-
-        // Add the "Back to Menu" Button at the bottom
-        Button backButton = new Button("Back to Menu");
+        // ✅ "Back to Grid Menu" button
+        Button backButton = new Button("Back to Grid Menu");
         backButton.setOnAction(e -> {
-            MenuApp menuApp = new MenuApp();
-            Stage menuStage = new Stage();
-            try {
-                menuApp.start(menuStage); // Start the main menu
-            } catch (Exception ex) {
-                ex.printStackTrace(); // Print the exception stack trace for debugging
-                // You can also show an alert to the user if needed
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("An error occurred while starting the main menu");
-                alert.setContentText(ex.getMessage());
-                alert.showAndWait();
-            }
-
-            stage.close(); // Close the results page
+            stage.close();
+            Stage gridMenuStage = new Stage();
+            new GridSizeMenu(isK2, isGrade6to8).start(gridMenuStage);
         });
 
-        // Add the button at the bottom of the layout
         layout.getChildren().add(backButton);
 
-        // Set the scene and show the stage
-        Scene scene = new Scene(layout, 400, 400);
+        Scene scene = new Scene(layout, 400, isGrade6to8 ? 400 : 350);
         stage.setScene(scene);
         stage.setTitle("Results");
         stage.show();
+
+        // ✅ Wait to speak results after display updates
+        Platform.runLater(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            String speechText = "Game Over! Longest run without meeting was " + longestRun +
+                    " moves. Shortest run before meeting was " + shortestRun +
+                    " moves. The average number of moves before meeting was " + averageRun +
+                    " moves. The total moves taken were " + totalMoves + " moves.";
+
+            if (isGrade6to8) {
+                speechText += " Your grid was " + rows + " by " + cols + ".";
+            }
+
+            textSpeech.speakText(speechText);
+        });
     }
 
-    // Close the TTS when done
+    private String getShortestTimeGrid() {
+        return gridTimeTracker.entrySet().stream()
+                .min(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+    }
+
+    private String getLongestTimeGrid() {
+        return gridTimeTracker.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+    }
+
     public void closeTextSpeech() {
         textSpeech.close();
     }

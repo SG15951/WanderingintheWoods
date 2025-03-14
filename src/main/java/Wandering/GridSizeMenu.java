@@ -10,70 +10,91 @@ import java.util.List;
 
 public class GridSizeMenu {
     private VBox characterInputsContainer;
-    private boolean isK2Mode;
+    private boolean isGrade6to8;
+    private boolean isK2;
     private TextField widthInput, heightInput;
     private ComboBox<Integer> characterDropdown;
 
-    public GridSizeMenu(boolean isK2) {
-        this.isK2Mode = isK2;
+    public GridSizeMenu(boolean isK2, boolean isGrade6to8) {
+        this.isK2 = isK2;
+        this.isGrade6to8 = isGrade6to8;
     }
 
     public void start(Stage stage) {
-        VBox layout = new VBox(10);
+        VBox layout = new VBox(15);
         layout.setAlignment(Pos.CENTER);
+        layout.setStyle("-fx-padding: 20;");
 
-        // Grid Size Inputs
-        HBox gridSizeInputs = new HBox(10);
-        gridSizeInputs.setAlignment(Pos.CENTER);
+        Label title = new Label("Select Grid Size and Characters");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Label widthLabel = new Label("Width:");
-        widthInput = new TextField();
-        widthInput.setPrefWidth(50);
-        widthInput.setPromptText("3-12");
+        if (isK2) {
+            // ✅ K-2 Mode: Fixed Grid & Characters
+            Label fixedGridLabel = new Label("The grid is 5x5.");
+            Label fixedCharactersLabel = new Label("The characters start at (1,1) and (5,5).");
 
-        Label heightLabel = new Label("Height:");
-        heightInput = new TextField();
-        heightInput.setPrefWidth(50);
-        heightInput.setPromptText("3-12");
+            Button createGridButton = new Button("Start Game");
+            createGridButton.setOnAction(e -> createGrid(stage, 5, 5, new int[][]{{0, 0}, {4, 4}}));
 
-        gridSizeInputs.getChildren().addAll(widthLabel, widthInput, heightLabel, heightInput);
+            layout.getChildren().addAll(title, fixedGridLabel, fixedCharactersLabel, createGridButton);
+        } else {
+            // ✅ Grades 3-5 & 6-8 Mode: Custom Grid & Characters
+            HBox gridSizeInputs = new HBox(10);
+            gridSizeInputs.setAlignment(Pos.CENTER);
 
-        // Character Selection (Only for non-K2)
-        HBox characterSelectionBox = new HBox(10);
-        characterSelectionBox.setAlignment(Pos.CENTER);
-        characterDropdown = new ComboBox<>();
+            Label widthLabel = new Label("Width:");
+            widthInput = new TextField();
+            widthInput.setPrefWidth(50);
+            widthInput.setPromptText("3-12");
 
-        if (!isK2Mode) {
-            Label charLabel = new Label("Characters:");
+            Label heightLabel = new Label("Height:");
+            heightInput = new TextField();
+            heightInput.setPrefWidth(50);
+            heightInput.setPromptText("3-12");
+
+            gridSizeInputs.getChildren().addAll(widthLabel, widthInput, heightLabel, heightInput);
+
+            // Character Selection
+            HBox characterSelectionBox = new HBox(10);
+            characterSelectionBox.setAlignment(Pos.CENTER);
+            characterDropdown = new ComboBox<>();
             characterDropdown.getItems().addAll(2, 3, 4);
             characterDropdown.setValue(2);
-            characterSelectionBox.getChildren().addAll(charLabel, characterDropdown);
-        }
 
-        // Character Input Container
-        characterInputsContainer = new VBox(5);
-        if (!isK2Mode) {
+            Label charLabel = new Label("Characters:");
+            characterSelectionBox.getChildren().addAll(charLabel, characterDropdown);
+
+            // Character Input Container
+            characterInputsContainer = new VBox(5);
             updateCharacterInputs(2, 5, 5);
             characterDropdown.setOnAction(e -> updateCharacterInputFields());
+
+            Button createGridButton = new Button("Start Game");
+            createGridButton.setOnAction(e -> createGrid(stage));
+
+            layout.getChildren().addAll(title, new Label("Grid Size:"), gridSizeInputs,
+                    new Label("Select Number of Characters:"), characterSelectionBox, characterInputsContainer);
+
+            // ✅ Grades 6-8 Only: Experiment Text
+            if (isGrade6to8) {
+                Label experimentLabel = new Label("Experiment Challenge:");
+                experimentLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: darkred;");
+
+                Label experimentInstructions = new Label(
+                        "Run experiments to determine how the average run varies with grid size and shape. " +
+                                "Try different grid dimensions and track how it affects movement!"
+                );
+                experimentInstructions.setWrapText(true);
+
+                layout.getChildren().addAll(experimentLabel, experimentInstructions);
+            }
+
+            layout.getChildren().add(createGridButton);
         }
 
-        Button createGridButton = new Button("Create Grid");
-        createGridButton.setOnAction(e -> createGrid(stage));
-
-        // Add Elements to Layout
-        if (!isK2Mode) {
-            layout.getChildren().addAll(new Label("Select Grid Size:"), gridSizeInputs,
-                    new Label("Select Number of Characters:"), characterSelectionBox,
-                    characterInputsContainer);
-        } else {
-            layout.getChildren().addAll(new Label("Grid size is 5x5."), new Label("Characters start at 1,1 and 5,5."));
-        }
-
-        layout.getChildren().add(createGridButton);
-
-        Scene scene = new Scene(layout, 350, 400);
+        Scene scene = new Scene(layout, 400, isGrade6to8 ? 500 : 450);
         stage.setScene(scene);
-        stage.setTitle(isK2Mode ? "K-2 Grid Setup" : "Choose Grid Size & Characters");
+        stage.setTitle(isGrade6to8 ? "Grid Experiment (6-8)" : "Choose Grid Size & Characters");
         stage.show();
     }
 
@@ -106,40 +127,40 @@ public class GridSizeMenu {
     }
 
     private void createGrid(Stage stage) {
-        int rows = 5, cols = 5; // Default for K2 Mode
+        try {
+            int cols = Integer.parseInt(widthInput.getText());
+            int rows = Integer.parseInt(heightInput.getText());
 
-        if (!isK2Mode) {
-            try {
-                cols = Integer.parseInt(widthInput.getText());
-                rows = Integer.parseInt(heightInput.getText());
-
-                if (cols < 3 || cols > 12 || rows < 3 || rows > 12) {
-                    showAlert("Grid size must be between 3 and 12.");
-                    return;
-                }
-            } catch (NumberFormatException ex) {
-                showAlert("Please enter valid numbers.");
+            if (cols < 3 || cols > 12 || rows < 3 || rows > 12) {
+                showAlert("Grid size must be between 3 and 12.");
                 return;
             }
-        }
 
-        int[][] characterPositions = getCharacterPositions(rows, cols);
-        if (characterPositions == null) {
-            showAlert("Invalid character positions.");
-            return;
-        }
+            int[][] characterPositions = getCharacterPositions(rows, cols);
+            if (characterPositions == null) {
+                showAlert("Invalid character positions.");
+                return;
+            }
 
-        CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions);
+            // ✅ FIX: Correctly pass `isGrade6to8` as the fourth argument
+            CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, isGrade6to8, isK2);
+            Stage gameStage = new Stage();
+            gameStage.setOnShown(e -> stage.close());
+            characterMovement.start(gameStage);
+        } catch (NumberFormatException e) {
+            showAlert("Please enter valid numbers.");
+        }
+    }
+
+    private void createGrid(Stage stage, int rows, int cols, int[][] characterPositions) {
+        // ✅ Overloaded method for K-2 Mode (fixed settings)
+        CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, false, true);
         Stage gameStage = new Stage();
+        gameStage.setOnShown(e -> stage.close());
         characterMovement.start(gameStage);
-        stage.close();
     }
 
     private int[][] getCharacterPositions(int rows, int cols) {
-        if (isK2Mode) {
-            return new int[][]{{0, 0}, {4, 4}}; // Fixed positions for K2
-        }
-
         int characterCount = characterDropdown.getValue();
         int[][] positions = new int[characterCount][2];
 
