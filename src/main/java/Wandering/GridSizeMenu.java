@@ -28,29 +28,37 @@ public class GridSizeMenu {
         layout.setAlignment(Pos.CENTER);
         layout.setStyle("-fx-padding: 20;");
 
-        Label title = new Label("Select Grid Size and Characters");
+        Label title = new Label(isK2 ? "Grid Size and Characters" : "Select Grid Size and Characters");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
+        Label k2Explain = new Label("In 'Wandering in the Woods,' characters randomly move through the grid until they meet. " +
+                "Watch them explore and find each other!");
+        k2Explain.setWrapText(true);
+        k2Explain.setAlignment(Pos.CENTER);
+        k2Explain.setMaxWidth(400);
+
+        layout.getChildren().addAll(title, k2Explain);
+
         if (isK2) {
-            // ✅ K-2 Mode: Fixed Grid & Characters
+            // K-2 Mode: Fixed Grid & Characters
             Label fixedGridLabel = new Label("The grid is 5x5.");
             Label fixedCharactersLabel = new Label("The characters start at (1,1) and (5,5).");
 
             Button createGridButton = new Button("Start Game");
             createGridButton.setOnAction(e -> createGrid(stage, 5, 5, new int[][]{{0, 0}, {4, 4}}, "Random Walk")); // ✅ Default strategy for K-2
 
-            layout.getChildren().addAll(title, fixedGridLabel, fixedCharactersLabel, createGridButton);
+            layout.getChildren().addAll(fixedGridLabel, fixedCharactersLabel, createGridButton);
         } else {
-            // ✅ Grades 3-5 & 6-8 Mode: Custom Grid & Characters
+            // Grades 3-5 & 6-8 Mode: Custom Grid & Characters
             HBox gridSizeInputs = new HBox(10);
             gridSizeInputs.setAlignment(Pos.CENTER);
 
-            Label widthLabel = new Label("Width:");
+            Label widthLabel = new Label("Select Grid Width:");
             widthInput = new TextField();
             widthInput.setPrefWidth(50);
             widthInput.setPromptText("3-12");
 
-            Label heightLabel = new Label("Height:");
+            Label heightLabel = new Label("Select Grid Height:");
             heightInput = new TextField();
             heightInput.setPrefWidth(50);
             heightInput.setPromptText("3-12");
@@ -64,7 +72,7 @@ public class GridSizeMenu {
             characterDropdown.getItems().addAll(2, 3, 4);
             characterDropdown.setValue(2);
 
-            Label charLabel = new Label("Characters:");
+            Label charLabel = new Label("Number of Characters:");
             characterSelectionBox.getChildren().addAll(charLabel, characterDropdown);
 
             // Character Input Container
@@ -72,10 +80,10 @@ public class GridSizeMenu {
             updateCharacterInputs(2, 5, 5);
             characterDropdown.setOnAction(e -> updateCharacterInputFields());
 
-            // ✅ Add a dropdown for movement strategies in 6-8 mode
+            // Add a dropdown for movement strategies in 6-8 mode
             HBox strategySelectionBox = new HBox(10);
             strategySelectionBox.setAlignment(Pos.CENTER);
-            Label strategyLabel = new Label("Wandering Protocol:");
+            Label strategyLabel = new Label("Choose a Wandering Protocol:");
             strategyDropdown = new ComboBox<>();
             strategyDropdown.getItems().addAll("Random Walk", "Edge Circling", "Center Circling", "Spiral Movement");
             strategyDropdown.setValue("Random Walk"); // Default
@@ -84,10 +92,11 @@ public class GridSizeMenu {
             Button createGridButton = new Button("Start Game");
             createGridButton.setOnAction(e -> createGrid(stage));
 
-            layout.getChildren().addAll(title, new Label("Grid Size:"), gridSizeInputs,
-                    new Label("Select Number of Characters:"), characterSelectionBox, characterInputsContainer);
+            layout.getChildren().addAll(new Label("Grid Size:"), gridSizeInputs,
+                    new Label("Select Number of Characters:"), characterSelectionBox,new Label("Choose Character Starting Positions:"), characterInputsContainer);
 
             if (isGrade6to8) {
+                layout.getChildren().add(new Label("Select Movement Strategy:"));
                 layout.getChildren().add(strategySelectionBox);
             }
 
@@ -117,7 +126,7 @@ public class GridSizeMenu {
             HBox inputRow = new HBox(5);
             inputRow.setAlignment(Pos.CENTER);
 
-            Label label = new Label("Character " + (i + 1) + " position:");
+            Label label = new Label("Character " + (i + 1) + " starting position:");
             TextField xInput = new TextField("1");
             xInput.setPrefWidth(40);
             TextField yInput = new TextField("1");

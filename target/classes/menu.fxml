@@ -9,7 +9,8 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="Wandering.MenuController" spacing="10" alignment="center">
-    <Text text="Welcome to Wandering in the Woods!" />
+    <Label text="Welcome to Wandering in the Woods!" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Text text="Please choose a grade level" />
     <Button text="K-2" onAction="#handleK2Button" />
     <Button text="3-5" onAction="#handleLevel3to5Button" />
     <Button text="6-8" onAction="#handleLevel6to8Button" />
