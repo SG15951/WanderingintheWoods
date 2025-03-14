@@ -1,10 +1,10 @@
-module com.example.WitW {
+module demo {
     requires javafx.controls;
     requires javafx.fxml;
     requires jsapi;
 
-
-    opens Wandering to javafx.graphics, javafx.fxml;
+    opens Wandering to javafx.fxml;
     exports Wandering;
 }
+
 
