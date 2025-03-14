@@ -27,15 +27,17 @@ public class CharacterMovement {
     private int shortestRun = Integer.MAX_VALUE;
     private List<Integer> moveHistory = new ArrayList<>();
     private Stage gameStage;
-    private boolean isGrade6to8; // ✅ Variable for 6-8 grade tracking
-    private boolean isK2; // ✅ FIX: Add missing variable for K-2 mode
+    private boolean isGrade6to8;
+    private boolean isK2;
+    private String movementStrategy;
 
     // ✅ FIX: Modify constructor to accept isGrade6to8 and isK2
-    public CharacterMovement(int rows, int cols, int[][] characterPositions, boolean isGrade6to8, boolean isK2) {
+    public CharacterMovement(int rows, int cols, int[][] characterPositions, boolean isGrade6to8, boolean isK2, String movementStrategy) {
         this.rows = rows;
         this.cols = cols;
-        this.isGrade6to8 = isGrade6to8; // ✅ Store value for experiment tracking
-        this.isK2 = isK2; // ✅ Store value for K-2 fixed settings
+        this.isGrade6to8 = isGrade6to8;
+        this.isK2 = isK2;
+        this.movementStrategy = movementStrategy;
         initializeCharacters(characterPositions);
     }
 
@@ -87,15 +89,195 @@ public class CharacterMovement {
 
     private void moveCharacters() {
         moveCount++;
-        System.out.println("Moving characters...");
 
         for (Character character : characters) {
-            character.moveRandomly(rows, cols);
+            switch (movementStrategy) {
+                case "Random Walk":
+                    character.moveRandomly(rows, cols);
+                    break;
+                case "Edge Circling":
+                    moveTowardEdges(character);
+                    break;
+                case "Center Circling":
+                    moveTowardCenter(character);
+                    break;
+                case "Spiral Movement":
+                    moveInSpiral(character);
+                    break;
+            }
         }
 
         updateCells();
         checkForMerging();
     }
+
+    // Move toward the edges, then start circling them
+    private void moveTowardEdges(Character character) {
+        if (character.row == 0 || character.row == rows - 1 || character.col == 0 || character.col == cols - 1) {
+            // Already at the edge → Start circling
+            moveAroundEdges(character);
+        } else {
+            // Move toward the closest edge
+            if (character.row < rows / 2) {
+                character.row++;
+            } else {
+                character.row--;
+            }
+
+            if (character.col < cols / 2) {
+                character.col++;
+            } else {
+                character.col--;
+            }
+        }
+    }
+
+    // Move in a circular pattern around the edges
+    private void moveAroundEdges(Character character) {
+        Random random = new Random();
+
+        // ✅ 5% chance to stop moving for a turn
+        if (random.nextDouble() < 0.05) {
+            return;
+        }
+
+        // ✅ 10% chance to reverse direction
+        boolean reverseDirection = random.nextDouble() < 0.10;
+
+        if (reverseDirection) {
+            // Move counterclockwise along the edges
+            if (character.row == 0 && character.col > 0) {
+                character.col--; // Move left along the top
+            } else if (character.col == 0 && character.row < rows - 1) {
+                character.row++; // Move down along the left side
+            } else if (character.row == rows - 1 && character.col < cols - 1) {
+                character.col++; // Move right along the bottom
+            } else if (character.col == cols - 1 && character.row > 0) {
+                character.row--; // Move up along the right side
+            }
+        } else {
+            // Move clockwise along the edges (default behavior)
+            if (character.row == 0 && character.col < cols - 1) {
+                character.col++; // Move right along the top
+            } else if (character.col == cols - 1 && character.row < rows - 1) {
+                character.row++; // Move down along the right side
+            } else if (character.row == rows - 1 && character.col > 0) {
+                character.col--; // Move left along the bottom
+            } else if (character.col == 0 && character.row > 0) {
+                character.row--; // Move up along the left side
+            }
+        }
+    }
+
+
+    // Move toward the center, then orbit around it
+    private void moveTowardCenter(Character character) {
+        int centerRow = rows / 2;
+        int centerCol = cols / 2;
+
+        if (Math.abs(character.row - centerRow) <= 1 && Math.abs(character.col - centerCol) <= 1) {
+            // Close enough to center → Start circling
+            moveAroundCenter(character);
+        } else {
+            // Move toward center
+            if (character.row < centerRow) {
+                character.row++;
+            } else if (character.row > centerRow) {
+                character.row--;
+            }
+
+            if (character.col < centerCol) {
+                character.col++;
+            } else if (character.col > centerCol) {
+                character.col--;
+            }
+        }
+    }
+
+    // Orbit around the center point
+    private void moveAroundCenter(Character character) {
+        int centerRow = rows / 2;
+        int centerCol = cols / 2;
+        Random random = new Random();
+
+        // Randomly decide whether to stop (5% chance)
+        if (random.nextDouble() < 0.05) {
+            return; // Character does nothing this turn
+        }
+
+        // Randomly decide whether to reverse direction (10% chance)
+        boolean reverseDirection = random.nextDouble() < 0.10;
+
+        // Determine current position relative to the center
+        boolean atTop = character.row == centerRow - 1;
+        boolean atBottom = character.row == centerRow + 1;
+        boolean atLeft = character.col == centerCol - 1;
+        boolean atRight = character.col == centerCol + 1;
+
+        if (reverseDirection) {
+            // Move in a counterclockwise pattern
+            if (atTop && !atLeft) {
+                character.col--; // Move left
+            } else if (atLeft && !atBottom) {
+                character.row++; // Move down
+            } else if (atBottom && !atRight) {
+                character.col++; // Move right
+            } else if (atRight && !atTop) {
+                character.row--; // Move up
+            }
+        } else {
+            // Move in the normal clockwise pattern
+            if (atTop && !atRight) {
+                character.col++; // Move right
+            } else if (atRight && !atBottom) {
+                character.row++; // Move down
+            } else if (atBottom && !atLeft) {
+                character.col--; // Move left
+            } else if (atLeft && !atTop) {
+                character.row--; // Move up
+            }
+        }
+    }
+
+
+
+    // Move in a spiral (outward if near center, inward if near edges)
+    private void moveInSpiral(Character character) {
+        int centerRow = rows / 2;
+        int centerCol = cols / 2;
+        Random random = new Random();
+
+        // ✅ Prevent characters from swapping back and forth
+        if (random.nextDouble() < 0.05) {
+            return; // 5% chance to stop moving for a turn
+        }
+
+        // Track previous position to prevent oscillation
+        int previousRow = character.row;
+        int previousCol = character.col;
+
+        if (character.row == centerRow && character.col == centerCol) {
+            // If exactly in the center, start moving outward
+            character.col++;
+        } else {
+            // Spiral logic
+            if (character.row <= centerRow && character.col < centerCol) {
+                character.col++; // Move right
+            } else if (character.col >= centerCol && character.row < centerRow) {
+                character.row++; // Move down
+            } else if (character.row >= centerRow && character.col > centerCol) {
+                character.col--; // Move left
+            } else if (character.col <= centerCol && character.row > centerRow) {
+                character.row--; // Move up
+            }
+        }
+
+        // ✅ Prevent swapping back and forth between two squares
+        if (character.row == previousRow && character.col == previousCol) {
+            character.row++; // Force movement forward if stuck
+        }
+    }
+
 
     private void updateCells() {
         System.out.println("Updating grid cells...");
@@ -155,7 +337,7 @@ public class CharacterMovement {
         int totalMoves = moveHistory.stream().mapToInt(Integer::intValue).sum();
 
         // ✅ Fix: Pass `isK2` as the 8th argument
-        ResultsPage resultsPage = new ResultsPage(longestRun, shortestRun, averageRun, totalMoves, rows, cols, isGrade6to8, isK2);
+        ResultsPage resultsPage = new ResultsPage(longestRun, shortestRun, averageRun, totalMoves, rows, cols, isGrade6to8, isK2, movementStrategy);
         Stage resultsStage = new Stage();
         resultsPage.start(resultsStage);
 

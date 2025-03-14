@@ -14,6 +14,9 @@ public class GridSizeMenu {
     private boolean isK2;
     private TextField widthInput, heightInput;
     private ComboBox<Integer> characterDropdown;
+    private ComboBox<String> strategyDropdown; // ✅ Declare strategyDropdown here
+    private int rows, cols; // ✅ Declare rows and cols
+    private int[][] characterPositions; // ✅ Declare characterPositions
 
     public GridSizeMenu(boolean isK2, boolean isGrade6to8) {
         this.isK2 = isK2;
@@ -34,7 +37,7 @@ public class GridSizeMenu {
             Label fixedCharactersLabel = new Label("The characters start at (1,1) and (5,5).");
 
             Button createGridButton = new Button("Start Game");
-            createGridButton.setOnAction(e -> createGrid(stage, 5, 5, new int[][]{{0, 0}, {4, 4}}));
+            createGridButton.setOnAction(e -> createGrid(stage, 5, 5, new int[][]{{0, 0}, {4, 4}}, "Random Walk")); // ✅ Default strategy for K-2
 
             layout.getChildren().addAll(title, fixedGridLabel, fixedCharactersLabel, createGridButton);
         } else {
@@ -69,24 +72,23 @@ public class GridSizeMenu {
             updateCharacterInputs(2, 5, 5);
             characterDropdown.setOnAction(e -> updateCharacterInputFields());
 
+            // ✅ Add a dropdown for movement strategies in 6-8 mode
+            HBox strategySelectionBox = new HBox(10);
+            strategySelectionBox.setAlignment(Pos.CENTER);
+            Label strategyLabel = new Label("Wandering Protocol:");
+            strategyDropdown = new ComboBox<>();
+            strategyDropdown.getItems().addAll("Random Walk", "Edge Circling", "Center Circling", "Spiral Movement");
+            strategyDropdown.setValue("Random Walk"); // Default
+            strategySelectionBox.getChildren().addAll(strategyLabel, strategyDropdown);
+
             Button createGridButton = new Button("Start Game");
             createGridButton.setOnAction(e -> createGrid(stage));
 
             layout.getChildren().addAll(title, new Label("Grid Size:"), gridSizeInputs,
                     new Label("Select Number of Characters:"), characterSelectionBox, characterInputsContainer);
 
-            // ✅ Grades 6-8 Only: Experiment Text
             if (isGrade6to8) {
-                Label experimentLabel = new Label("Experiment Challenge:");
-                experimentLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: darkred;");
-
-                Label experimentInstructions = new Label(
-                        "Run experiments to determine how the average run varies with grid size and shape. " +
-                                "Try different grid dimensions and track how it affects movement!"
-                );
-                experimentInstructions.setWrapText(true);
-
-                layout.getChildren().addAll(experimentLabel, experimentInstructions);
+                layout.getChildren().add(strategySelectionBox);
             }
 
             layout.getChildren().add(createGridButton);
@@ -101,8 +103,8 @@ public class GridSizeMenu {
     private void updateCharacterInputFields() {
         int characterCount = characterDropdown.getValue();
         try {
-            int rows = Integer.parseInt(heightInput.getText());
-            int cols = Integer.parseInt(widthInput.getText());
+            rows = Integer.parseInt(heightInput.getText());
+            cols = Integer.parseInt(widthInput.getText());
             updateCharacterInputs(characterCount, rows, cols);
         } catch (NumberFormatException ignored) {
             updateCharacterInputs(characterCount, 5, 5);
@@ -128,22 +130,24 @@ public class GridSizeMenu {
 
     private void createGrid(Stage stage) {
         try {
-            int cols = Integer.parseInt(widthInput.getText());
-            int rows = Integer.parseInt(heightInput.getText());
+            cols = Integer.parseInt(widthInput.getText());
+            rows = Integer.parseInt(heightInput.getText());
 
             if (cols < 3 || cols > 12 || rows < 3 || rows > 12) {
                 showAlert("Grid size must be between 3 and 12.");
                 return;
             }
 
-            int[][] characterPositions = getCharacterPositions(rows, cols);
+            characterPositions = getCharacterPositions(rows, cols);
             if (characterPositions == null) {
                 showAlert("Invalid character positions.");
                 return;
             }
 
-            // ✅ FIX: Correctly pass `isGrade6to8` as the fourth argument
-            CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, isGrade6to8, isK2);
+            String selectedStrategy = strategyDropdown.getValue();
+
+            // ✅ Fix: Pass `isK2` and strategy as the fifth and sixth arguments
+            CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, isGrade6to8, isK2, selectedStrategy);
             Stage gameStage = new Stage();
             gameStage.setOnShown(e -> stage.close());
             characterMovement.start(gameStage);
@@ -152,9 +156,9 @@ public class GridSizeMenu {
         }
     }
 
-    private void createGrid(Stage stage, int rows, int cols, int[][] characterPositions) {
+    private void createGrid(Stage stage, int rows, int cols, int[][] characterPositions, String strategy) {
         // ✅ Overloaded method for K-2 Mode (fixed settings)
-        CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, false, true);
+        CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, false, true, strategy);
         Stage gameStage = new Stage();
         gameStage.setOnShown(e -> stage.close());
         characterMovement.start(gameStage);

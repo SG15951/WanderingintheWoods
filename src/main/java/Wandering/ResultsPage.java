@@ -18,9 +18,11 @@ public class ResultsPage {
     private boolean isGrade6to8;
     private boolean isK2;
     private TextSpeech textSpeech;
+    private String movementStrategy;
     private static Map<String, Integer> gridTimeTracker = new HashMap<>();
+    private static Map<String, Integer> protocolBestTimes = new HashMap<>();
 
-    public ResultsPage(int longestRun, int shortestRun, int averageRun, int totalMoves, int rows, int cols, boolean isGrade6to8, boolean isK2) {
+    public ResultsPage(int longestRun, int shortestRun, int averageRun, int totalMoves, int rows, int cols, boolean isGrade6to8, boolean isK2, String movementStrategy) {
         this.longestRun = longestRun;
         this.shortestRun = shortestRun;
         this.averageRun = averageRun;
@@ -29,12 +31,21 @@ public class ResultsPage {
         this.cols = cols;
         this.isGrade6to8 = isGrade6to8;
         this.isK2 = isK2;
-        this.textSpeech = new TextSpeech("Game Results");
+        this.movementStrategy = movementStrategy;
 
-        // ✅ Only track grid completion times if grade level is 6-8
+        try {
+            this.textSpeech = new TextSpeech("Game Results"); // ✅ Ensure textSpeech is initialized
+        } catch (Exception e) {
+            System.err.println("TTS Initialization Failed: " + e.getMessage());
+            this.textSpeech = null; // Prevent crashes if TTS fails
+        }
+
+        // ✅ Track protocol performance in grades 6-8
         if (isGrade6to8) {
-            String gridSizeKey = rows + "x" + cols;
-            gridTimeTracker.put(gridSizeKey, totalMoves);
+            protocolBestTimes.put(movementStrategy, totalMoves);
+
+            String gridKey = rows + "x" + cols;
+            gridTimeTracker.put(gridKey, totalMoves);
         }
     }
 
@@ -57,14 +68,16 @@ public class ResultsPage {
         if (isGrade6to8) {
             String shortestGridSize = getShortestTimeGrid();
             String longestGridSize = getLongestTimeGrid();
+            String bestProtocol = getBestProtocol(); // ✅ Retrieve best protocol here
 
             Label experimentLabel = new Label("Experimental Data:");
             experimentLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: darkred;");
 
             Label shortestGridLabel = new Label("Grid with Fastest Completion: " + shortestGridSize);
             Label longestGridLabel = new Label("Grid with Longest Completion: " + longestGridSize);
+            Label bestProtocolLabel = new Label("Best Wandering Protocol: " + bestProtocol); // ✅ Moved inside experiment section
 
-            layout.getChildren().addAll(experimentLabel, shortestGridLabel, longestGridLabel);
+            layout.getChildren().addAll(experimentLabel, shortestGridLabel, longestGridLabel, bestProtocolLabel);
         }
 
         // ✅ "Back to Grid Menu" button
@@ -89,31 +102,44 @@ public class ResultsPage {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
             String speechText = "Game Over! Longest run without meeting was " + longestRun +
                     " moves. Shortest run before meeting was " + shortestRun +
                     " moves. The average number of moves before meeting was " + averageRun +
-                    " moves. The total moves taken were " + totalMoves + " moves.";
+                    " moves. The total moves taken were " + totalMoves + " moves. The wandering protocol used was " + movementStrategy + ".";
 
             if (isGrade6to8) {
-                speechText += " Your grid was " + rows + " by " + cols + ".";
+                speechText += " The best protocol so far was " + getBestProtocol() + ".";
             }
 
-            textSpeech.speakText(speechText);
+            // ✅ Only call TTS if it was successfully initialized
+            if (textSpeech != null) {
+                textSpeech.speakText(speechText);
+            } else {
+                System.err.println("TTS is null, skipping speech output.");
+            }
         });
     }
 
     private String getShortestTimeGrid() {
-        return gridTimeTracker.entrySet().stream()
+        return gridTimeTracker.isEmpty() ? "N/A" : gridTimeTracker.entrySet().stream()
                 .min(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("N/A");
     }
 
     private String getLongestTimeGrid() {
-        return gridTimeTracker.entrySet().stream()
+        return gridTimeTracker.isEmpty() ? "N/A" : gridTimeTracker.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("N/A");
+    }
+
+    private String getBestProtocol() {
+        return protocolBestTimes.entrySet().stream()
+                .min(Map.Entry.comparingByValue()) // Get the protocol with the lowest total moves
+                .map(Map.Entry::getKey)
+                .orElse("N/A"); // If no data, return "N/A"
     }
 
     public void closeTextSpeech() {
