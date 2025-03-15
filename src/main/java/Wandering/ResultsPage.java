@@ -34,13 +34,13 @@ public class ResultsPage {
         this.movementStrategy = movementStrategy;
 
         try {
-            this.textSpeech = new TextSpeech("Game Results"); // ✅ Ensure textSpeech is initialized
+            this.textSpeech = new TextSpeech("Game Results"); // Ensure textSpeech is initialized
         } catch (Exception e) {
             System.err.println("TTS Initialization Failed: " + e.getMessage());
             this.textSpeech = null; // Prevent crashes if TTS fails
         }
 
-        // ✅ Track protocol performance in grades 6-8
+        // Track protocol performance in grades 6-8
         if (isGrade6to8) {
             protocolBestTimes.put(movementStrategy, totalMoves);
 
@@ -64,7 +64,7 @@ public class ResultsPage {
 
         layout.getChildren().addAll(title, longestRunLabel, shortestRunLabel, averageRunLabel, totalMovesLabel, gridSizeLabel);
 
-        // ✅ Show tracking results only for grades 6-8
+        // Show tracking results only for grades 6-8
         if (isGrade6to8) {
             String shortestGridSize = getShortestTimeGrid();
             String longestGridSize = getLongestTimeGrid();
@@ -80,7 +80,7 @@ public class ResultsPage {
             layout.getChildren().addAll(experimentLabel, shortestGridLabel, longestGridLabel, bestProtocolLabel);
         }
 
-        // ✅ "Back to Grid Menu" button
+        // "Back to Grid Menu" button
         Button backButton = new Button("Back to Grid Menu");
         backButton.setOnAction(e -> {
             stage.close();
@@ -95,7 +95,7 @@ public class ResultsPage {
         stage.setTitle("Results");
         stage.show();
 
-        // ✅ Wait to speak results after display updates
+        // Wait to speak results after display updates
         Platform.runLater(() -> {
             try {
                 Thread.sleep(500);
@@ -112,7 +112,7 @@ public class ResultsPage {
                 speechText += " The best protocol so far was " + getBestProtocol() + ".";
             }
 
-            // ✅ Only call TTS if it was successfully initialized
+            // Only call TTS if it was successfully initialized
             if (textSpeech != null) {
                 textSpeech.speakText(speechText);
             } else {

@@ -14,13 +14,10 @@ public class Game {
 
     public Game(String gradeLevel) {
         this.gradeLevel = gradeLevel;
-        System.out.println("Game started. Tracking player movements...");
     }
 
-    // ✅ Instead of causing movement, Game just records it
     public void recordMove() {
         moveCount++;
-        System.out.println("Move " + moveCount + " recorded.");
     }
 
     public void checkEncounters(List<CharacterMovement.Character> characters) {
@@ -45,10 +42,6 @@ public class Game {
         int sum = moveHistory.stream().mapToInt(Integer::intValue).sum();
         int averageMove = moveHistory.isEmpty() ? 0 : sum / moveHistory.size();
 
-        System.out.println("Game Over after " + moveCount + " moves!");
-        System.out.println("Longest Move: " + longestMove);
-        System.out.println("Shortest Move: " + shortestMove);
-        System.out.println("Average Moves: " + averageMove);
     }
 
     private void showEncounterMessage() {

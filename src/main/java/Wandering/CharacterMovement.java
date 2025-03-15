@@ -31,7 +31,6 @@ public class CharacterMovement {
     private boolean isK2;
     private String movementStrategy;
 
-    // ✅ FIX: Modify constructor to accept isGrade6to8 and isK2
     public CharacterMovement(int rows, int cols, int[][] characterPositions, boolean isGrade6to8, boolean isK2, String movementStrategy) {
         this.rows = rows;
         this.cols = cols;
@@ -43,7 +42,6 @@ public class CharacterMovement {
 
     public void start(Stage stage) {
         this.gameStage = stage;
-        System.out.println("Starting CharacterMovement...");
 
         gridPane = new GridPane();
         gridPane.setAlignment(Pos.CENTER);
@@ -61,8 +59,6 @@ public class CharacterMovement {
             gridPane.getRowConstraints().add(rowConst);
         }
 
-        System.out.println("Creating grid of size " + rows + "x" + cols);
-
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 cells[i][j] = new Cell();
@@ -71,16 +67,12 @@ public class CharacterMovement {
             }
         }
 
-        System.out.println("Grid successfully created.");
-
         updateCells();
 
         Scene scene = new Scene(gridPane, cols * 50, rows * 50);
         stage.setScene(scene);
         stage.setTitle("Wandering in the Woods");
         stage.show();
-
-        System.out.println("GameGrid displayed successfully.");
 
         timeline = new Timeline(new KeyFrame(Duration.seconds(0.5), e -> moveCharacters()));
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -136,12 +128,12 @@ public class CharacterMovement {
     private void moveAroundEdges(Character character) {
         Random random = new Random();
 
-        // ✅ 5% chance to stop moving for a turn
+        // 5% chance to stop moving for a turn
         if (random.nextDouble() < 0.05) {
             return;
         }
 
-        // ✅ 10% chance to reverse direction
+        // 10% chance to reverse direction
         boolean reverseDirection = random.nextDouble() < 0.10;
 
         if (reverseDirection) {
@@ -239,15 +231,13 @@ public class CharacterMovement {
         }
     }
 
-
-
     // Move in a spiral (outward if near center, inward if near edges)
     private void moveInSpiral(Character character) {
         int centerRow = rows / 2;
         int centerCol = cols / 2;
         Random random = new Random();
 
-        // ✅ Prevent characters from swapping back and forth
+        // Prevent characters from swapping back and forth
         if (random.nextDouble() < 0.05) {
             return; // 5% chance to stop moving for a turn
         }
@@ -272,7 +262,7 @@ public class CharacterMovement {
             }
         }
 
-        // ✅ Prevent swapping back and forth between two squares
+        // Prevent swapping back and forth between two squares
         if (character.row == previousRow && character.col == previousCol) {
             character.row++; // Force movement forward if stuck
         }
@@ -280,11 +270,9 @@ public class CharacterMovement {
 
 
     private void updateCells() {
-        System.out.println("Updating grid cells...");
 
         for (Character character : characters) {
             if (character.getRow() >= rows || character.getCol() >= cols || character.getRow() < 0 || character.getCol() < 0) {
-                System.out.println("ERROR: Character tried to move out of bounds! Resetting position.");
                 character.resetPosition(rows, cols);
             }
         }
@@ -296,7 +284,6 @@ public class CharacterMovement {
         }
 
         for (Character character : characters) {
-            System.out.println("Placing character at (" + character.getRow() + ", " + character.getCol() + ")");
             cells[character.getRow()][character.getCol()].addCharacter(character.groupSize);
         }
     }
@@ -306,8 +293,6 @@ public class CharacterMovement {
             for (int j = i + 1; j < characters.size(); j++) {
                 if (characters.get(i).getRow() == characters.get(j).getRow() &&
                         characters.get(i).getCol() == characters.get(j).getCol()) {
-
-                    System.out.println("Merge detected at (" + characters.get(i).getRow() + "," + characters.get(i).getCol() + ")");
 
                     moveHistory.add(moveCount);
                     longestRun = Math.max(longestRun, moveCount);
@@ -323,7 +308,6 @@ public class CharacterMovement {
         }
 
         if (characters.size() == 1) {
-            System.out.println("All characters merged! Stopping game...");
             timeline.stop();
             showResultsPage();
         }
@@ -336,7 +320,6 @@ public class CharacterMovement {
         int averageRun = moveHistory.size() > 0 ? sum / moveHistory.size() : 0;
         int totalMoves = moveHistory.stream().mapToInt(Integer::intValue).sum();
 
-        // ✅ Fix: Pass `isK2` as the 8th argument
         ResultsPage resultsPage = new ResultsPage(longestRun, shortestRun, averageRun, totalMoves, rows, cols, isGrade6to8, isK2, movementStrategy);
         Stage resultsStage = new Stage();
         resultsPage.start(resultsStage);
@@ -347,7 +330,6 @@ public class CharacterMovement {
     private void initializeCharacters(int[][] positions) {
         for (int[] pos : positions) {
             if (pos[0] >= rows || pos[1] >= cols || pos[0] < 0 || pos[1] < 0) {
-                System.out.println("ERROR: Invalid character position " + Arrays.toString(pos) + ". Resetting.");
                 pos[0] = Math.min(rows - 1, Math.max(0, pos[0]));
                 pos[1] = Math.min(cols - 1, Math.max(0, pos[1]));
             }

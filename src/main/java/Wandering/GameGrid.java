@@ -28,7 +28,6 @@ public class GameGrid {
     }
 
     public void start(Stage stage) {
-        System.out.println("Starting GameGrid...");
 
         VBox layout = new VBox(10);
         layout.setAlignment(Pos.CENTER);
@@ -79,18 +78,13 @@ public class GameGrid {
         int sceneWidth = cols * 50 + 50;
         int sceneHeight = rows * 50 + 50;
 
-        System.out.println("Setting scene size: " + sceneWidth + "x" + sceneHeight);
-
         Scene scene = new Scene(layout, sceneWidth, sceneHeight);
         stage.setScene(scene);
         stage.setTitle(lockedGrid ? "Fixed 5x5 Grid" : "Custom Game Grid");
         stage.show();
-
-        System.out.println("GameGrid displayed successfully.");
     }
 
     private void generateGrid(GridPane gridPane) {
-        System.out.println("Generating grid of size: " + rows + "x" + cols);
         gridPane.getChildren().clear();
 
         for (int i = 0; i < rows; i++) {
@@ -100,7 +94,6 @@ public class GameGrid {
                 gridPane.add(cell, j, i);
             }
         }
-        System.out.println("Grid generated successfully. Cells count: " + (rows * cols));
     }
 
     private void showAlert(String message) {

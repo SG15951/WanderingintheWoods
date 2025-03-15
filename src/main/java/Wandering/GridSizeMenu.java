@@ -14,9 +14,9 @@ public class GridSizeMenu {
     private boolean isK2;
     private TextField widthInput, heightInput;
     private ComboBox<Integer> characterDropdown;
-    private ComboBox<String> strategyDropdown; // ✅ Declare strategyDropdown here
-    private int rows, cols; // ✅ Declare rows and cols
-    private int[][] characterPositions; // ✅ Declare characterPositions
+    private ComboBox<String> strategyDropdown;
+    private int rows, cols;
+    private int[][] characterPositions;
 
     public GridSizeMenu(boolean isK2, boolean isGrade6to8) {
         this.isK2 = isK2;
@@ -155,7 +155,6 @@ public class GridSizeMenu {
 
             String selectedStrategy = strategyDropdown.getValue();
 
-            // ✅ Fix: Pass `isK2` and strategy as the fifth and sixth arguments
             CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, isGrade6to8, isK2, selectedStrategy);
             Stage gameStage = new Stage();
             gameStage.setOnShown(e -> stage.close());
@@ -166,7 +165,6 @@ public class GridSizeMenu {
     }
 
     private void createGrid(Stage stage, int rows, int cols, int[][] characterPositions, String strategy) {
-        // ✅ Overloaded method for K-2 Mode (fixed settings)
         CharacterMovement characterMovement = new CharacterMovement(rows, cols, characterPositions, false, true, strategy);
         Stage gameStage = new Stage();
         gameStage.setOnShown(e -> stage.close());
